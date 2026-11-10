@@ -4,10 +4,6 @@ import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
 /// Local SQLite storage for the Dhker Android-first app.
-///
-/// Content and personal data are kept in separate database files. Content
-/// records are not populated with religious text until their sources and
-/// permissions have been reviewed.
 class DhkerDatabase {
   DhkerDatabase._({required this.content, required this.user});
 
@@ -17,8 +13,6 @@ class DhkerDatabase {
   final Database content;
   final Database user;
 
-  /// Opens (or creates) both databases in the app's private database folder.
-  /// Supplying [directory] is useful for tests and isolated development data.
   static Future<DhkerDatabase> open({String? directory}) async {
     final dbDirectory = directory ?? await getDatabasesPath();
     await Directory(dbDirectory).create(recursive: true);

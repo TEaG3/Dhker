@@ -21,7 +21,6 @@ void main() {
     final categories = await database.getCategories();
     expect(categories, hasLength(8));
     expect(categories.first['id'], 'morning');
-
     expect(await database.getSetting('schema_version'), '1');
     expect(await database.getAdhkarForCategory('morning'), isEmpty);
   });
@@ -69,7 +68,7 @@ void main() {
         doneCount: 0,
         targetCount: 0,
       ),
-      throwsArgumentError,
+      throwsA(isA<ArgumentError>()),
     );
   });
 }
