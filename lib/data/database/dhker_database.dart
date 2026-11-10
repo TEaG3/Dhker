@@ -151,7 +151,7 @@ class DhkerDatabase {
   }
 
   static const List<Map<String, Object?>> _initialCategories = [
-    {'id': 'morning', 'title_ar': 'أذكار الصب��ح', 'title_en': 'Morning', 'sort_order': 10, 'icon_name': 'wb_sunny', 'is_daily': 1},
+    {'id': 'morning', 'title_ar': 'أذكار الصباح', 'title_en': 'Morning', 'sort_order': 10, 'icon_name': 'wb_sunny', 'is_daily': 1},
     {'id': 'evening', 'title_ar': 'أذكار المساء', 'title_en': 'Evening', 'sort_order': 20, 'icon_name': 'nights_stay', 'is_daily': 1},
     {'id': 'after_prayer', 'title_ar': 'أذكار بعد الصلاة', 'title_en': 'After prayer', 'sort_order': 30, 'icon_name': 'mosque', 'is_daily': 0},
     {'id': 'sleep', 'title_ar': 'أذكار النوم', 'title_en': 'Before sleep', 'sort_order': 40, 'icon_name': 'bedtime', 'is_daily': 0},
