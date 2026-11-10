@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dhker/data/database/dhker_database.dart';
+import 'package:dhker/data/database/tasbih_repository.dart';
 import 'package:dhker/main.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -21,7 +22,6 @@ void main() {
 
     await tester.pumpWidget(DhkerApp(database: database));
     await tester.pumpAndSettle();
-
     expect(find.text('المواقيت'), findsOneWidget);
     expect(find.text('القرآن'), findsOneWidget);
     expect(find.text('الأذكار'), findsOneWidget);
