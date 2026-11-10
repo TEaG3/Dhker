@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:dhker/data/database/dhker_database.dart';
-import 'package:dhker/data/database/tasbih_repository.dart';
 import 'package:dhker/main.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
