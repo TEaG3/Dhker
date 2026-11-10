@@ -1,30 +1,31 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+import 'dart:io';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-
+import 'package:dhker/data/database/dhker_database.dart';
 import 'package:dhker/main.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  setUpAll(() {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  testWidgets('application starts with Android-first navigation', (tester) async {
+    final directory = await Directory.systemTemp.createTemp('dhker-widget-');
+    final database = await DhkerDatabase.open(directory: directory.path);
+    addTearDown(() async {
+      await database.close();
+      await directory.delete(recursive: true);
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    await tester.pumpWidget(DhkerApp(database: database));
+    await tester.pumpAndSettle();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('المواقيت'), findsOneWidget);
+    expect(find.text('القرآن'), findsOneWidget);
+    expect(find.text('الأذكار'), findsOneWidget);
+    expect(find.text('القبلة'), findsOneWidget);
+    expect(find.text('التسبيح'), findsOneWidget);
   });
 }
