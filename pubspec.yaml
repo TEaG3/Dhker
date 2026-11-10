@@ -27,3 +27,9 @@ flutter:
   uses-material-design: true
   assets:
     - assets/data/cities.json
+    dependencies:
+  # ... المكتبات السابقة ...
+  flutter_local_notifications: ^17.2.2
+  timezone: ^0.9.4
+  audioplayers: ^6.0.0
+  permission_handler: ^11.3.1
