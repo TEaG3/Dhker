@@ -17,6 +17,10 @@ dependencies:
   google_fonts: ^6.2.1
   qcf_quran_lite: ^0.0.6
   scrollable_positioned_list: ^0.3.8
+  flutter_local_notifications: ^17.2.2
+  timezone: ^0.9.4
+  audioplayers: ^6.0.0
+  permission_handler: ^11.3.1
 
 dev_dependencies:
   flutter_test:
@@ -27,9 +31,5 @@ flutter:
   uses-material-design: true
   assets:
     - assets/data/cities.json
-    dependencies:
-  # ... المكتبات السابقة ...
-  flutter_local_notifications: ^17.2.2
-  timezone: ^0.9.4
-  audioplayers: ^6.0.0
-  permission_handler: ^11.3.1
+    - assets/data/adhkar.json
+    - assets/data/references.json
