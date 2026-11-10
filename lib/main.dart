@@ -573,3 +573,22 @@ class _TasbihScreenState extends State<TasbihScreen> {
         ),
       );
 }
+// استيراد الشاشات الجديدة
+import 'screens/adhkar_screen.dart';
+import 'screens/adhan_screen.dart';
+
+// داخل _MainTabsState
+final screens = [
+  const PrayerTimesScreen(),
+  const QuranScreen(),
+  const AdhkarScreen(),      // شاشة الأذكار الجديدة
+  const AdhanScreen(),       // شاشة الأذان الجديدة
+];
+
+// في NavigationBar
+destinations: const [
+  NavigationDestination(icon: Icon(Icons.mosque), label: 'المواقيت'),
+  NavigationDestination(icon: Icon(Icons.book), label: 'القرآن'),
+  NavigationDestination(icon: Icon(Icons.format_quote), label: 'الأذكار'),
+  NavigationDestination(icon: Icon(Icons.notifications_active), label: 'الأذان'),
+],
