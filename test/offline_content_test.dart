@@ -63,7 +63,7 @@ void main() {
       }
     });
 
-    test('adhan asset manifest documents the two offline recordings', () async {
+    test('both downloaded adhan files are valid non-empty Ogg assets', () async {\n      for (final name in ['adhan_default.ogg', 'adhan_fajr.ogg']) {\n        final data = await rootBundle.load('assets/adhan/$name');\n        final bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);\n        expect(bytes.length, greaterThan(10000));\n        expect(String.fromCharCodes(bytes.take(4)), 'OggS');\n      }\n    });\n\n    test('adhan asset manifest documents the two offline recordings', () async {
       final raw = await rootBundle.loadString('assets/adhan/README.md');
       expect(raw, contains('adhan_default.ogg'));
       expect(raw, contains('adhan_fajr.ogg'));
