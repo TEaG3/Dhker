@@ -9,6 +9,6 @@ void main() {
     expect(find.text('المواقيت'), findsOneWidget);
     expect(find.text('القرآن'), findsOneWidget);
     expect(find.text('الأذكار'), findsOneWidget);
-    expect(find.text('القبلة'), findsOneWidget);
+    expect(find.text('التنبيهات'), findsOneWidget);
   });
 }
