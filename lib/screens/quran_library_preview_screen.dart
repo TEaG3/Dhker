@@ -9,7 +9,14 @@ class QuranLibraryPreviewScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final libraryTheme = ThemeData.from(Theme.of(context), useMaterial3: false);
+    final currentTheme = Theme.of(context);
+    final libraryTheme = (isDark
+            ? ThemeData.dark(useMaterial3: false)
+            : ThemeData.light(useMaterial3: false))
+        .copyWith(
+          colorScheme: currentTheme.colorScheme,
+          textTheme: currentTheme.textTheme,
+        );
 
     return Theme(
       data: libraryTheme,
