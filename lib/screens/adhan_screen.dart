@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:adhan/adhan.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -19,9 +20,11 @@ class _AdhanScreenState extends State<AdhanScreen>
     with WidgetsBindingObserver {
   static const _notificationPreferenceKey = 'prayer_notifications_enabled';
   static const _enabledPreferenceKey = 'prayer_enabled_';
+  static const _soundPreferenceKey = 'prayer_sound_';
 
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   Map<String, dynamic>? _city;
   Map<String, bool> _enabled = {
@@ -31,10 +34,18 @@ class _AdhanScreenState extends State<AdhanScreen>
     'maghrib': true,
     'isha': true,
   };
+  Map<String, String> _sounds = {
+    'fajr': 'adhan_fajr',
+    'dhuhr': 'adhan_default',
+    'asr': 'adhan_default',
+    'maghrib': 'adhan_default',
+    'isha': 'adhan_default',
+  };
   bool _notificationsEnabled = false;
   bool _loading = true;
   bool _working = false;
   String? _error;
+  String? _previewing;
 
   static const _prayers = <String, String>{
     'fajr': 'الفجر',
@@ -44,16 +55,25 @@ class _AdhanScreenState extends State<AdhanScreen>
     'isha': 'العشاء',
   };
 
+  static const _soundNames = <String, String>{
+    'adhan_default': 'الأذان الأساسي',
+    'adhan_fajr': 'أذان الفجر',
+  };
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _audioPlayer.onPlayerComplete.listen((_) {
+      if (mounted) setState(() => _previewing = null);
+    });
     _load();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -67,7 +87,6 @@ class _AdhanScreenState extends State<AdhanScreen>
   Future<void> _load() async {
     try {
       tz.initializeTimeZones();
-      // Convert device-local prayer times to UTC without changing the instant.
       tz.setLocalLocation(tz.UTC);
 
       const androidSettings =
@@ -87,23 +106,28 @@ class _AdhanScreenState extends State<AdhanScreen>
       );
 
       final enabled = <String, bool>{};
+      final sounds = <String, String>{};
       for (final prayerId in _prayers.keys) {
         enabled[prayerId] =
             preferences.getBool('$_enabledPreferenceKey$prayerId') ?? true;
+        final savedSound =
+            preferences.getString('$_soundPreferenceKey$prayerId');
+        sounds[prayerId] = _soundNames.containsKey(savedSound)
+            ? savedSound!
+            : (prayerId == 'fajr' ? 'adhan_fajr' : 'adhan_default');
       }
 
       if (!mounted) return;
       setState(() {
         _city = city;
         _enabled = enabled;
+        _sounds = sounds;
         _notificationsEnabled =
             preferences.getBool(_notificationPreferenceKey) ?? false;
         _loading = false;
       });
 
-      if (_notificationsEnabled) {
-        await _scheduleUpcomingPrayers();
-      }
+      if (_notificationsEnabled) await _scheduleUpcomingPrayers();
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -118,11 +142,9 @@ class _AdhanScreenState extends State<AdhanScreen>
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>();
     if (android == null) return false;
-
     final notificationGranted =
         await android.requestNotificationsPermission() ?? false;
     if (!notificationGranted) return false;
-
     return await android.requestExactAlarmsPermission() ?? false;
   }
 
@@ -142,7 +164,6 @@ class _AdhanScreenState extends State<AdhanScreen>
         );
         return;
       }
-
       final preferences = await SharedPreferences.getInstance();
       await preferences.setBool(_notificationPreferenceKey, true);
       if (!mounted) return;
@@ -162,8 +183,33 @@ class _AdhanScreenState extends State<AdhanScreen>
     setState(() => _enabled[prayerId] = value);
     final preferences = await SharedPreferences.getInstance();
     await preferences.setBool('$_enabledPreferenceKey$prayerId', value);
-    if (_notificationsEnabled) {
-      await _scheduleUpcomingPrayers();
+    if (_notificationsEnabled) await _scheduleUpcomingPrayers();
+  }
+
+  Future<void> _setPrayerSound(String prayerId, String sound) async {
+    setState(() => _sounds[prayerId] = sound);
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString('$_soundPreferenceKey$prayerId', sound);
+    if (_notificationsEnabled) await _scheduleUpcomingPrayers();
+  }
+
+  Future<void> _previewSound(String prayerId) async {
+    final sound = _sounds[prayerId]!;
+    try {
+      if (_previewing == prayerId) {
+        await _audioPlayer.stop();
+        if (mounted) setState(() => _previewing = null);
+        return;
+      }
+      await _audioPlayer.stop();
+      if (mounted) setState(() => _previewing = prayerId);
+      await _audioPlayer.play(AssetSource('adhan/$sound.ogg'));
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _previewing = null);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('تعذر تشغيل معاينة الأذان: $error')),
+      );
     }
   }
 
@@ -196,14 +242,6 @@ class _AdhanScreenState extends State<AdhanScreen>
     final now = DateTime.now();
 
     await _notificationsPlugin.cancelAll();
-    const androidDetails = AndroidNotificationDetails(
-      'prayer_reminders',
-      'تنبيهات الصلاة',
-      channelDescription: 'تنبيه عند دخول وقت الصلاة',
-      importance: Importance.max,
-      priority: Priority.high,
-    );
-    const details = NotificationDetails(android: androidDetails);
 
     for (var dayOffset = 0; dayOffset < 7; dayOffset++) {
       final date = DateTime(now.year, now.month, now.day + dayOffset);
@@ -227,7 +265,21 @@ class _AdhanScreenState extends State<AdhanScreen>
           continue;
         }
 
+        final sound = _sounds[entry.key]!;
+        final channelId = 'prayer_${entry.key}_$sound';
+        final androidDetails = AndroidNotificationDetails(
+          channelId,
+          'أذان ${_prayers[entry.key]}',
+          channelDescription: 'صوت الأذان عند دخول وقت الصلاة',
+          importance: Importance.max,
+          priority: Priority.high,
+          playSound: true,
+          sound: RawResourceAndroidNotificationSound(sound),
+          audioAttributesUsage: AudioAttributesUsage.alarm,
+        );
+        final details = NotificationDetails(android: androidDetails);
         final scheduledAt = tz.TZDateTime.from(entry.value, tz.UTC);
+
         await _notificationsPlugin.zonedSchedule(
           dayOffset * 10 + prayerIndex,
           'حان الآن وقت صلاة ${_prayers[entry.key]}',
@@ -252,7 +304,7 @@ class _AdhanScreenState extends State<AdhanScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('تنبيهات الصلاة'),
+        title: const Text('إعدادات الأذان'),
         centerTitle: true,
       ),
       body: ListView(
@@ -276,16 +328,66 @@ class _AdhanScreenState extends State<AdhanScreen>
             ),
           const SizedBox(height: 12),
           const Text(
-            'اختر الصلوات التي تريد التنبيه عند دخول وقتها:',
+            'اختر صوت الأذان لكل صلاة، ويمكنك الاستماع إلى معاينة قبل اعتماده:',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
+          const SizedBox(height: 8),
           for (final entry in _prayers.entries)
-            SwitchListTile(
-              title: Text(entry.value),
-              value: _enabled[entry.key] ?? true,
-              onChanged: (value) => _setPrayerEnabled(entry.key, value),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                child: Column(
+                  children: [
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(entry.value),
+                      value: _enabled[entry.key] ?? true,
+                      onChanged: (value) =>
+                          _setPrayerEnabled(entry.key, value),
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: DropdownButtonFormField<String>(
+                            value: _sounds[entry.key],
+                            decoration: const InputDecoration(
+                              labelText: 'صوت الأذان',
+                              isDense: true,
+                            ),
+                            items: _soundNames.entries
+                                .map(
+                                  (sound) => DropdownMenuItem(
+                                    value: sound.key,
+                                    child: Text(sound.value),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (value) {
+                              if (value != null) {
+                                _setPrayerSound(entry.key, value);
+                              }
+                            },
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: 'معاينة الصوت',
+                          onPressed: () => _previewSound(entry.key),
+                          icon: Icon(
+                            _previewing == entry.key
+                                ? Icons.stop_circle_outlined
+                                : Icons.play_circle_outline,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           FilledButton.icon(
             onPressed: _working ? null : _enableNotifications,
             icon: _working
@@ -297,19 +399,26 @@ class _AdhanScreenState extends State<AdhanScreen>
                 : const Icon(Icons.notifications_active_outlined),
             label: Text(
               _notificationsEnabled
-                  ? 'تحديث مواعيد التنبيهات'
-                  : 'تفعيل تنبيهات الصلاة',
+                  ? 'تحديث مواعيد الأذان'
+                  : 'تفعيل الأذان والتنبيهات',
             ),
           ),
           if (_notificationsEnabled)
             const Padding(
               padding: EdgeInsets.only(top: 12),
               child: Text(
-                'تُحدّث التنبيهات للأيام السبعة القادمة عند فتح التطبيق. '
-                'يستخدم التنبيه صوت الإشعار الافتراضي للجهاز.',
+                'تُجدول أصوات الأذان للأيام السبعة القادمة. '
+                'قد تخضع مدة الصوت لقيود نظام Android وإعدادات قنوات الإشعارات.',
                 textAlign: TextAlign.center,
               ),
             ),
+          const SizedBox(height: 12),
+          const Text(
+            'الأصوات المرفقة مرخّصة CC0 من Wikimedia Commons، '
+            'وتعمل دون اتصال بعد تثبيت التطبيق.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12),
+          ),
         ],
       ),
     );
