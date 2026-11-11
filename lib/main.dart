@@ -19,6 +19,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/adhan_screen.dart';
 import 'screens/adhkar_screen.dart';
 import 'screens/qibla_screen.dart';
+import 'screens/quran_library_preview_screen.dart';
 import 'services/database_helper.dart';
 
 Future<void> main() async {
@@ -1187,6 +1188,17 @@ class _QuranScreenState extends State<QuranScreen> {
       appBar: AppBar(
         title: const Text('القرآن الكريم'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            tooltip: 'معاينة مكتبة المصحف الجديدة',
+            icon: const Icon(Icons.auto_stories_outlined),
+            onPressed: () {
+              Navigator.of(context).push(
+                _softRoute(const QuranLibraryPreviewScreen()),
+              );
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
