@@ -89,7 +89,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
 
   double _calculateQiblaBearing(double latitude, double longitude) {
     final phi = latitude * math.pi / 180;
-    final kaabaPhi = _kaabaLatitude * math.pi / 180;
+    const kaabaPhi = _kaabaLatitude * math.pi / 180;
     final deltaLambda = (_kaabaLongitude - longitude) * math.pi / 180;
 
     final y = math.sin(deltaLambda) * math.cos(kaabaPhi);
