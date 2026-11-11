@@ -54,6 +54,13 @@ jobs:
           cp assets/adhan/adhan_fajr.ogg android/app/src/main/res/raw/adhan_fajr.ogg
           test -s assets/adhan/adhan_default.ogg
           test -s assets/adhan/adhan_fajr.ogg
+          test -s android/app/src/main/res/raw/adhan_default.ogg
+          test -s android/app/src/main/res/raw/adhan_fajr.ogg
+          file assets/adhan/adhan_default.ogg assets/adhan/adhan_fajr.ogg
+          file --mime-type assets/adhan/adhan_default.ogg | grep -Eq 'audio|application/ogg'
+          file --mime-type assets/adhan/adhan_fajr.ogg | grep -Eq 'audio|application/ogg'
+          file --mime-type android/app/src/main/res/raw/adhan_default.ogg | grep -Eq 'audio|application/ogg'
+          file --mime-type android/app/src/main/res/raw/adhan_fajr.ogg | grep -Eq 'audio|application/ogg'
 
       - name: Install dependencies
         run: flutter pub get
