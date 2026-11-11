@@ -45,6 +45,16 @@ jobs:
           dart --version
           java -version
 
+      - name: Prepare offline adhan audio library
+        run: |
+          mkdir -p assets/adhan android/app/src/main/res/raw
+          curl -fL --retry 3 "https://commons.wikimedia.org/wiki/Special:Redirect/file/Beautiful_adhan.ogg" -o assets/adhan/adhan_default.ogg
+          curl -fL --retry 3 "https://commons.wikimedia.org/wiki/Special:Redirect/file/Adhan.ogg" -o assets/adhan/adhan_fajr.ogg
+          cp assets/adhan/adhan_default.ogg android/app/src/main/res/raw/adhan_default.ogg
+          cp assets/adhan/adhan_fajr.ogg android/app/src/main/res/raw/adhan_fajr.ogg
+          test -s assets/adhan/adhan_default.ogg
+          test -s assets/adhan/adhan_fajr.ogg
+
       - name: Install dependencies
         run: flutter pub get
 
