@@ -28,10 +28,12 @@ class _QiblaScreenState extends State<QiblaScreen> {
   }
 
   Future<void> _initializeCompass() async {
-    if (mounted) setState(() {
-      _loading = true;
-      _error = null;
-    });
+    if (mounted) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    }
 
     try {
       final sensorAvailable = await FlutterQiblah.androidDeviceSensorSupport();
