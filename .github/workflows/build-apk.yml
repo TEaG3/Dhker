@@ -90,18 +90,27 @@ jobs:
       - name: Run tests
         run: flutter test --reporter expanded
 
-      - name: Build release APK
-        run: flutter build apk --release
+      - name: Build ABI-specific release APKs
+        run: flutter build apk --release --split-per-abi
 
-      - name: Create SHA-256 checksum
-        run: sha256sum build/app/outputs/flutter-apk/app-release.apk > build/app/outputs/flutter-apk/SHA256SUMS.txt
+      - name: Analyze APK sizes and create checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd build/app/outputs/flutter-apk
+          ls -lh *.apk
+          for apk in *.apk; do
+            echo "=== $apk ==="
+            unzip -l "$apk" | sort -nr | head -n 15
+          done
+          sha256sum *.apk > SHA256SUMS.txt
 
-      - name: Upload APK artifact
+      - name: Upload APK artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: dhker-android-apk
+          name: dhker-android-apks-by-abi
           path: |
-            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/flutter-apk/*.apk
             build/app/outputs/flutter-apk/SHA256SUMS.txt
           retention-days: 30
 
@@ -111,7 +120,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release upload v0.1.0-beta.1 \
-            build/app/outputs/flutter-apk/app-release.apk \
+            build/app/outputs/flutter-apk/*.apk \
             build/app/outputs/flutter-apk/SHA256SUMS.txt \
             --clobber
 
@@ -120,5 +129,5 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/flutter-apk/*.apk
             build/app/outputs/flutter-apk/SHA256SUMS.txt
