@@ -21,6 +21,10 @@ dependencies:
   timezone: ^0.9.4
   audioplayers: ^6.0.0
   permission_handler: ^11.3.1
+  hijri_date: ^1.1.0
+  flutter_qiblah: ^3.2.0
+  lucide_icons_flutter: ^4.0.3
+  flutter_animate: ^4.5.2
   sqflite: ^2.3.3
   path: ^1.9.0
 
