@@ -45,6 +45,7 @@ class _AdhanScreenState extends State<AdhanScreen>
   bool _notificationsEnabled = false;
   bool _loading = true;
   bool _working = false;
+  bool _scheduling = false;
   String? _error;
   String? _previewing;
 
@@ -124,7 +125,7 @@ class _AdhanScreenState extends State<AdhanScreen>
             preferences.getString('$_soundPreferenceKey$prayerId');
         sounds[prayerId] = _soundNames.containsKey(savedSound)
             ? savedSound!
-            : (prayerId == 'fajr' ? 'adhan_fajr' : 'adhan_default');
+            : _soundNames.keys.first;
       }
 
       if (!mounted) return;
@@ -197,9 +198,11 @@ class _AdhanScreenState extends State<AdhanScreen>
   }
 
   Future<void> _setPrayerSound(String prayerId, String sound) async {
-    setState(() => _sounds[prayerId] = sound);
+    if (!_soundNames.containsKey(sound)) return;
     final preferences = await SharedPreferences.getInstance();
     await preferences.setString('$_soundPreferenceKey$prayerId', sound);
+    if (!mounted) return;
+    setState(() => _sounds[prayerId] = sound);
     if (_notificationsEnabled) await _scheduleUpcomingPrayers();
   }
 
@@ -224,8 +227,11 @@ class _AdhanScreenState extends State<AdhanScreen>
   }
 
   Future<void> _scheduleUpcomingPrayers() async {
+    if (_scheduling) return;
     final city = _city;
     if (city == null || !_notificationsEnabled) return;
+    _scheduling = true;
+    try {
 
     final android = _notificationsPlugin
         .resolvePlatformSpecificImplementation<
@@ -301,6 +307,9 @@ class _AdhanScreenState extends State<AdhanScreen>
               UILocalNotificationDateInterpretation.absoluteTime,
         );
       }
+    }
+    } finally {
+      _scheduling = false;
     }
   }
 
