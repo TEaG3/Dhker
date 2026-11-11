@@ -1,10 +1,13 @@
 import 'package:dhker/main.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets('يعرض التطبيق وجهات التنقل الرئيسية', (tester) async {
-    await tester.pumpWidget(const DhikrApp(enableClock: false));
+    await tester.pumpWidget(const DhikrApp());
+
+    // Flush flutter_animate's delayed entrance timers and their animations.
+    await tester.pump(const Duration(seconds: 2));
     await tester.pump();
 
     expect(find.text('المواقيت'), findsOneWidget);
@@ -12,8 +15,6 @@ void main() {
     expect(find.text('الأذكار'), findsOneWidget);
     expect(find.text('الأذان'), findsOneWidget);
 
-    // Unmount the dashboard explicitly so its clock timer is disposed
-    // before the test binding checks for pending timers.
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
   });
