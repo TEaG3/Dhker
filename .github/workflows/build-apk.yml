@@ -45,23 +45,42 @@ jobs:
           dart --version
           java -version
 
-      - name: Prepare offline adhan audio library
+      - name: Prepare offline Kiwifu adhan audio library
         run: |
           mkdir -p assets/adhan android/app/src/main/res/raw
-          curl -fL --retry 3 "https://commons.wikimedia.org/wiki/Special:Redirect/file/Beautiful_adhan.ogg" -o assets/adhan/adhan_default.ogg
-          curl -fL --retry 3 "https://commons.wikimedia.org/wiki/Special:Redirect/file/Adhan.ogg" -o assets/adhan/adhan_fajr.ogg
-          cp assets/adhan/adhan_default.ogg android/app/src/main/res/raw/adhan_default.ogg
-          cp assets/adhan/adhan_fajr.ogg android/app/src/main/res/raw/adhan_fajr.ogg
-          test -s assets/adhan/adhan_default.ogg
-          test -s assets/adhan/adhan_fajr.ogg
-          test -s android/app/src/main/res/raw/adhan_default.ogg
-          test -s android/app/src/main/res/raw/adhan_fajr.ogg
-          file assets/adhan/adhan_default.ogg assets/adhan/adhan_fajr.ogg
-          file --mime-type assets/adhan/adhan_default.ogg | grep -Eq 'audio|application/ogg'
-          file --mime-type assets/adhan/adhan_fajr.ogg | grep -Eq 'audio|application/ogg'
-          file --mime-type android/app/src/main/res/raw/adhan_default.ogg | grep -Eq 'audio|application/ogg'
-          file --mime-type android/app/src/main/res/raw/adhan_fajr.ogg | grep -Eq 'audio|application/ogg'
+          download_adhan() {
+            python3 - "$1" "$2" <<'PY'
+          import sys
+          from urllib.parse import quote
+          from urllib.request import urlopen
 
+          source_name, target_name = sys.argv[1], sys.argv[2]
+          url = "https://raw.githubusercontent.com/Kiwifu/adhan-mp3/main/" + quote(source_name, safe="")
+          with urlopen(url, timeout=90) as response:
+              data = response.read()
+          if len(data) < 1024:
+              raise SystemExit(f"Downloaded audio is unexpectedly small: {source_name}")
+          with open(target_name, "wb") as output:
+              output.write(data)
+          print(f"Downloaded {source_name} ({len(data)} bytes)")
+          PY
+          }
+          download_adhan "Muhammad_Ramadan_Saad_-_Al_Haram_Al_Maki_(محمد_رمضان_سعد_-_الحرم_المكي).mp3" "assets/adhan/adhan_muhammad_ramadan_saad.mp3"
+          download_adhan "Ali_Ibn_Ahmad_Mala_1_-_Al_Haram_Al_Maki_(علي_بن_أحمد_ملا_-_الحرم_المكي).mp3" "assets/adhan/adhan_ali_ibn_ahmad_mala.mp3"
+          download_adhan "Muhammad_Khaleel_Raml_-_Al_Haram_Al_Maki_(محمد_خليل_رمل_-_الحرم_المكي).mp3" "assets/adhan/adhan_muhammad_khaleel_raml.mp3"
+          download_adhan "Nayf_Fedah_-_Al_Haram_Al_Maki_(نايف_فداح_-_الحرم_المكي).mp3" "assets/adhan/adhan_nayf_fedah.mp3"
+          download_adhan "Faruq_Abdul_Rahman_Hadrawe_-_Al_Haram_Al_Maki_(فاروق_عبدالرحمن_حضراوي_-_الحرم_المكي).mp3" "assets/adhan/adhan_faruq_abdul_rahman_hadrawe.mp3"
+          download_adhan "Assem_Bukhrare_-_Al_Haram_Al_Maki_(عاصم_بخراري_-_الحرم_المكي).mp3" "assets/adhan/adhan_assem_bukhrare.mp3"
+          download_adhan "NurDin_Hamza_Al_Maghriby_-_Al_Aqsa_Jerusalem_(نور_الدين_حمزة_المغربي_-_المسجد_الأقصى_القدس).mp3" "assets/adhan/adhan_nurdin_hamza_al_maghriby.mp3"
+          download_adhan "Najee_Qazaz_-_Al_Aqsa_Jerusalem_(ناجي_قزاز_-_المسجد_الأقصى_القدس).mp3" "assets/adhan/adhan_najee_qazaz.mp3"
+          download_adhan "Mishary_Rashid_Alafasy_1_-_Kuwait_(مشاري_راشد_العفاسي_-_الكويت).mp3" "assets/adhan/adhan_mishary_rashid_alafasy.mp3"
+          download_adhan "Abdulbasit_Abdusamad_1_-_Egypt_(عبد_الباسط_عبد_الصمد_-_مصر).mp3" "assets/adhan/adhan_abdulbasit_abdusamad.mp3"
+          cp assets/adhan/*.mp3 android/app/src/main/res/raw/
+          test "$(find assets/adhan -maxdepth 1 -type f -name '*.mp3' | wc -l)" -eq 10
+          for audio in assets/adhan/*.mp3 android/app/src/main/res/raw/*.mp3; do
+            test -s "$audio"
+            file --mime-type "$audio" | grep -q 'audio/mpeg'
+          done
       - name: Install dependencies
         run: flutter pub get
 
