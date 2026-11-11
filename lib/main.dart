@@ -170,7 +170,7 @@ class _MainTabsState extends State<MainTabs> {
                     onThemeChanged: widget.onThemeChanged,
                     enableClock: widget.enableClock,
                   ),
-                  const QuranScreen(),
+                  const QuranLibraryPreviewScreen(),
                   const AdhkarScreen(),
                   const AdhanScreen(),
                 ],
