@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'islamic_identity_pack.dart';
 import 'package:hijri_date/hijri.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -101,10 +101,11 @@ class _DhikrAppState extends State<DhikrApp> {
           ),
         ),
       ),
-      textTheme: GoogleFonts.amiriTextTheme(
-        ThemeData(brightness: light ? Brightness.light : Brightness.dark)
-            .textTheme,
-      ),
+      // Use the platform's bundled Arabic-capable font fallback.
+      // This avoids Google Fonts runtime downloads when the device is offline.
+      textTheme: ThemeData(
+        brightness: light ? Brightness.light : Brightness.dark,
+      ).textTheme.apply(fontFamily: 'sans-serif'),
     );
   }
 
@@ -120,6 +121,11 @@ class _DhikrAppState extends State<DhikrApp> {
         GlobalCupertinoLocalizations.delegate,
       ],
       theme: _themeFor(_themeIndex),
+      builder: (context, child) {
+        return DhkerIdentityWrapper(
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
       home: MainTabs(
         themeIndex: _themeIndex,
         onThemeChanged: _setTheme,
