@@ -9,6 +9,7 @@ import 'package:qcf_quran_lite/qcf_quran_lite.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'services/database_helper.dart';
+import 'screens/adhan_screen.dart';
 import 'screens/adhkar_screen.dart';
 
 void main() async {
@@ -61,7 +62,7 @@ class _MainTabsState extends State<MainTabs> {
       const PrayerTimesScreen(),
       const QuranScreen(),
       const AdhkarScreen(),
-      const Center(child: Text('الأذان - قريباً', style: TextStyle(fontSize: 20))),
+      const AdhanScreen(),
     ];
 
     return Scaffold(
