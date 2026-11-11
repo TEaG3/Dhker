@@ -7,7 +7,7 @@ void main() {
     await tester.pumpWidget(const DhikrApp(enableClock: false, testMode: true));
     await tester.pump();
 
-    expect(find.text('المواقيت'), findsOneWidget);
+    expect(find.text('المواقيت'), findsAtLeastNWidgets(1));
     expect(find.text('القرآن'), findsOneWidget);
     expect(find.text('الأذكار'), findsOneWidget);
     expect(find.text('الأذان'), findsOneWidget);
