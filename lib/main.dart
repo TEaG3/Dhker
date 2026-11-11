@@ -1319,7 +1319,7 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
           onPageChanged: (pageNumber) {
             setState(() => _pageNumber = pageNumber);
           },
-          onLongPressStart: (surahNumber, verseNumber, details) {
+          onLongPress: (surahNumber, verseNumber, details) {
             _showAyahActions(surahNumber, verseNumber);
           },
         ),
