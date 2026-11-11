@@ -617,14 +617,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen>
                   onTap: () => _openPage(const HijriCalendarScreen()),
                 ),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _QuickAction(
-                  icon: LucideIcons.bell,
-                  label: 'إعدادات الأذان',
-                  onTap: () => _openPage(const AdhanScreen()),
-                ),
-              ),
+
             ],
           ),
         ],
