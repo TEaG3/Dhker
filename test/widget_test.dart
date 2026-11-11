@@ -1,5 +1,5 @@
+import 'package:flutter/material.dart';
 import 'package:dhker/main.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -12,8 +12,7 @@ void main() {
     expect(find.text('الأذكار'), findsOneWidget);
     expect(find.text('الأذان'), findsOneWidget);
 
-    // Unmount the dashboard explicitly so its clock timer is disposed
-    // before the test binding checks for pending timers.
+    // Unmount the dashboard so its clock timer is disposed before test teardown.
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
   });
