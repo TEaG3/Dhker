@@ -4,6 +4,7 @@ import 'package:adhan/adhan.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -87,7 +88,8 @@ class _AdhanScreenState extends State<AdhanScreen>
   Future<void> _load() async {
     try {
       tz.initializeTimeZones();
-      tz.setLocalLocation(tz.UTC);
+      final deviceTimezone = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(deviceTimezone.identifier));
 
       const androidSettings =
           AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -266,7 +268,7 @@ class _AdhanScreenState extends State<AdhanScreen>
         }
 
         final sound = _sounds[entry.key]!;
-        final channelId = 'prayer_${entry.key}_$sound';
+        final channelId = 'prayer_${entry.key}_${sound}_v2';
         final androidDetails = AndroidNotificationDetails(
           channelId,
           'أذان ${_prayers[entry.key]}',
@@ -278,7 +280,7 @@ class _AdhanScreenState extends State<AdhanScreen>
           audioAttributesUsage: AudioAttributesUsage.alarm,
         );
         final details = NotificationDetails(android: androidDetails);
-        final scheduledAt = tz.TZDateTime.from(entry.value, tz.UTC);
+        final scheduledAt = tz.TZDateTime.from(entry.value, tz.local);
 
         await _notificationsPlugin.zonedSchedule(
           dayOffset * 10 + prayerIndex,
@@ -407,18 +409,10 @@ class _AdhanScreenState extends State<AdhanScreen>
             const Padding(
               padding: EdgeInsets.only(top: 12),
               child: Text(
-                'تُجدول أصوات الأذان للأيام السبعة القادمة. '
-                'قد تخضع مدة الصوت لقيود نظام Android وإعدادات قنوات الإشعارات.',
+                'تم تفعيل تنبيهات الصلوات للأيام السبعة القادمة.',
                 textAlign: TextAlign.center,
               ),
             ),
-          const SizedBox(height: 12),
-          const Text(
-            'الأصوات المرفقة مرخّصة CC0 من Wikimedia Commons، '
-            'وتعمل دون اتصال بعد تثبيت التطبيق.',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12),
-          ),
         ],
       ),
     );

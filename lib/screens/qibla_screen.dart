@@ -1,8 +1,11 @@
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_device_compass/flutter_device_compass.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class QiblaScreen extends StatefulWidget {
@@ -20,6 +23,8 @@ class _QiblaScreenState extends State<QiblaScreen> {
   String? _error;
   double? _qiblaBearing;
   Stream<CompassEvent>? _compassStream;
+  String? _locationLabel;
+  bool _usingSelectedCity = false;
 
   @override
   void initState() {
@@ -41,31 +46,40 @@ class _QiblaScreenState extends State<QiblaScreen> {
         throw Exception('هذا الجهاز لا يحتوي على مستشعر بوصلة مناسب.');
       }
 
-      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        throw Exception('يرجى تشغيل خدمة الموقع (GPS) ثم المحاولة مجدداً.');
+      double latitude;
+      double longitude;
+      String locationLabel;
+      var usingSelectedCity = false;
+
+      try {
+        final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+        var permission = await Geolocator.checkPermission();
+        if (serviceEnabled && permission == LocationPermission.denied) {
+          permission = await Geolocator.requestPermission();
+        }
+        if (serviceEnabled &&
+            permission != LocationPermission.denied &&
+            permission != LocationPermission.deniedForever) {
+          final position = await Geolocator.getCurrentPosition(
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.high,
+            ),
+          );
+          latitude = position.latitude;
+          longitude = position.longitude;
+          locationLabel = 'موقعك الحالي';
+        } else {
+          throw StateError('GPS unavailable');
+        }
+      } catch (_) {
+        final selectedCity = await _loadSelectedCity();
+        latitude = (selectedCity['lat'] as num).toDouble();
+        longitude = (selectedCity['lng'] as num).toDouble();
+        locationLabel = selectedCity['name']?.toString() ?? 'المدينة المختارة';
+        usingSelectedCity = true;
       }
 
-      var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-      if (permission == LocationPermission.denied) {
-        throw Exception('يلزم السماح للتطبيق بالوصول إلى الموقع لحساب اتجاه القبلة.');
-      }
-      if (permission == LocationPermission.deniedForever) {
-        throw Exception('إذن الموقع مرفوض نهائياً. افتح إعدادات التطبيق واسمح بالوصول إلى الموقع.');
-      }
-
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-        ),
-      );
-      final bearing = _calculateQiblaBearing(
-        position.latitude,
-        position.longitude,
-      );
+      final bearing = _calculateQiblaBearing(latitude, longitude);
       final stream = FlutterCompass.events;
 
       if (stream == null) {
@@ -76,6 +90,8 @@ class _QiblaScreenState extends State<QiblaScreen> {
       setState(() {
         _qiblaBearing = bearing;
         _compassStream = stream;
+        _locationLabel = locationLabel;
+        _usingSelectedCity = usingSelectedCity;
         _loading = false;
       });
     } catch (error) {
@@ -85,6 +101,20 @@ class _QiblaScreenState extends State<QiblaScreen> {
         _loading = false;
       });
     }
+  }
+
+  Future<Map<String, dynamic>> _loadSelectedCity() async {
+    final preferences = await SharedPreferences.getInstance();
+    final cityId = preferences.getString('city_id') ?? 'baghdad';
+    final raw = await rootBundle.loadString('assets/data/cities.json');
+    final cities = (jsonDecode(raw) as List).cast<Map<String, dynamic>>();
+    if (cities.isEmpty) {
+      throw const FormatException('قائمة المدن فارغة');
+    }
+    return cities.firstWhere(
+      (city) => city['id'] == cityId,
+      orElse: () => cities.first,
+    );
   }
 
   double _calculateQiblaBearing(double latitude, double longitude) {
@@ -190,6 +220,18 @@ class _QiblaScreenState extends State<QiblaScreen> {
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                             const SizedBox(height: 8),
+                            Text(
+                              'الموقع: ${_locationLabel ?? '—'}',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            if (_usingSelectedCity)
+                              const Padding(
+                                padding: EdgeInsets.only(top: 6),
+                                child: Text(
+                                  'تعذر تحديد موقعك؛ استُخدمت المدينة المختارة لحساب القبلة.',
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
                             Text(
                               'اتجاه الهاتف: ${heading.toStringAsFixed(0)}°',
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
