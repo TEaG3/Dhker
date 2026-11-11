@@ -13,6 +13,7 @@ import 'package:hijri_date/hijri.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:qcf_quran_lite/qcf_quran_lite.dart';
+import 'package:quran_library/quran_library.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'screens/adhan_screen.dart';
@@ -24,6 +25,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   HijriDate.setLocal('ar');
   await DatabaseHelper().database;
+  await QuranLibrary.init();
   runApp(const DhikrApp());
 }
 
