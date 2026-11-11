@@ -1,7 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_qiblah/flutter_qiblah.dart';
+import 'package:flutter_device_compass/flutter_device_compass.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class QiblaScreen extends StatefulWidget {
@@ -12,19 +13,18 @@ class QiblaScreen extends StatefulWidget {
 }
 
 class _QiblaScreenState extends State<QiblaScreen> {
+  static const double _kaabaLatitude = 21.422487;
+  static const double _kaabaLongitude = 39.826206;
+
   bool _loading = true;
   String? _error;
+  double? _qiblaBearing;
+  Stream<CompassEvent>? _compassStream;
 
   @override
   void initState() {
     super.initState();
     _initializeCompass();
-  }
-
-  @override
-  void dispose() {
-    FlutterQiblah().dispose();
-    super.dispose();
   }
 
   Future<void> _initializeCompass() async {
@@ -36,26 +36,48 @@ class _QiblaScreenState extends State<QiblaScreen> {
     }
 
     try {
-      final sensorAvailable = await FlutterQiblah.androidDeviceSensorSupport();
-      if (sensorAvailable == false) {
+      final supported = await FlutterCompass.hasSensors;
+      if (supported != true) {
         throw Exception('هذا الجهاز لا يحتوي على مستشعر بوصلة مناسب.');
       }
 
-      var status = await FlutterQiblah.checkLocationStatus();
-      if (status.status.toString().toLowerCase().contains('denied')) {
-        await FlutterQiblah.requestPermissions();
-        status = await FlutterQiblah.checkLocationStatus();
-      }
-
-      if (!status.enabled) {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
         throw Exception('يرجى تشغيل خدمة الموقع (GPS) ثم المحاولة مجدداً.');
       }
-      if (status.status.toString().toLowerCase().contains('denied')) {
+
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied) {
         throw Exception('يلزم السماح للتطبيق بالوصول إلى الموقع لحساب اتجاه القبلة.');
       }
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception('إذن الموقع مرفوض نهائياً. افتح إعدادات التطبيق واسمح بالوصول إلى الموقع.');
+      }
 
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+      final bearing = _calculateQiblaBearing(
+        position.latitude,
+        position.longitude,
+      );
+      final stream = FlutterCompass.events;
+
+      if (stream == null) {
+        throw Exception('تعذر تشغيل مستشعر اتجاه الهاتف.');
+      }
       if (!mounted) return;
-      setState(() => _loading = false);
+
+      setState(() {
+        _qiblaBearing = bearing;
+        _compassStream = stream;
+        _loading = false;
+      });
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -63,6 +85,18 @@ class _QiblaScreenState extends State<QiblaScreen> {
         _loading = false;
       });
     }
+  }
+
+  double _calculateQiblaBearing(double latitude, double longitude) {
+    final phi = latitude * math.pi / 180;
+    final kaabaPhi = _kaabaLatitude * math.pi / 180;
+    final deltaLambda = (_kaabaLongitude - longitude) * math.pi / 180;
+
+    final y = math.sin(deltaLambda) * math.cos(kaabaPhi);
+    final x = math.cos(phi) * math.sin(kaabaPhi) -
+        math.sin(phi) * math.cos(kaabaPhi) * math.cos(deltaLambda);
+
+    return (math.atan2(y, x) * 180 / math.pi + 360) % 360;
   }
 
   @override
@@ -94,8 +128,8 @@ class _QiblaScreenState extends State<QiblaScreen> {
                         ),
                       ],
                     )
-                  : StreamBuilder<QiblahDirection>(
-                      stream: FlutterQiblah.qiblahStream,
+                  : StreamBuilder<CompassEvent>(
+                      stream: _compassStream,
                       builder: (context, snapshot) {
                         if (snapshot.hasError) {
                           return Text(
@@ -103,11 +137,19 @@ class _QiblaScreenState extends State<QiblaScreen> {
                             textAlign: TextAlign.center,
                           );
                         }
-                        if (!snapshot.hasData) {
-                          return const CircularProgressIndicator();
+                        final heading = snapshot.data?.heading;
+                        if (heading == null || _qiblaBearing == null) {
+                          return const Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CircularProgressIndicator(),
+                              SizedBox(height: 14),
+                              Text('بانتظار قراءة مستشعر الاتجاه...'),
+                            ],
+                          );
                         }
 
-                        final direction = snapshot.data!;
+                        final offset = (_qiblaBearing! - heading + 360) % 360;
                         return Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -118,8 +160,8 @@ class _QiblaScreenState extends State<QiblaScreen> {
                             ),
                             const SizedBox(height: 26),
                             AnimatedRotation(
-                              turns: direction.offset / 360,
-                              duration: const Duration(milliseconds: 250),
+                              turns: offset / 360,
+                              duration: const Duration(milliseconds: 220),
                               curve: Curves.easeOut,
                               child: CustomPaint(
                                 size: const Size(280, 280),
@@ -144,19 +186,19 @@ class _QiblaScreenState extends State<QiblaScreen> {
                             ),
                             const SizedBox(height: 26),
                             Text(
-                              'زاوية القبلة: ${direction.qiblah.toStringAsFixed(0)}°',
+                              'زاوية القبلة من الشمال: ${_qiblaBearing!.toStringAsFixed(0)}°',
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'الشمال: ${direction.direction.toStringAsFixed(0)}°',
+                              'اتجاه الهاتف: ${heading.toStringAsFixed(0)}°',
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: colors.onSurfaceVariant,
                                   ),
                             ),
                             const SizedBox(height: 18),
                             Text(
-                              'لأفضل دقة، أبعد الهاتف عن المعادن ومكبرات الصوت، وحرّكه برفق على شكل رقم 8 عند الحاجة إلى معايرة البوصلة.',
+                              'أبعد الهاتف عن المعادن ومكبرات الصوت. إذا لم يستقر الاتجاه، أعد معايرة مستشعر البوصلة.',
                               textAlign: TextAlign.center,
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
