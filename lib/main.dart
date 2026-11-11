@@ -28,7 +28,9 @@ Future<void> main() async {
 }
 
 class DhikrApp extends StatefulWidget {
-  const DhikrApp({super.key});
+  const DhikrApp({super.key, this.enableClock = true});
+
+  final bool enableClock;
 
   @override
   State<DhikrApp> createState() => _DhikrAppState();
@@ -113,6 +115,7 @@ class _DhikrAppState extends State<DhikrApp> {
       home: MainTabs(
         themeIndex: _themeIndex,
         onThemeChanged: _setTheme,
+        enableClock: widget.enableClock,
       ),
     );
   }
@@ -123,10 +126,12 @@ class MainTabs extends StatefulWidget {
     super.key,
     required this.themeIndex,
     required this.onThemeChanged,
+    this.enableClock = true,
   });
 
   final int themeIndex;
   final ValueChanged<int> onThemeChanged;
+  final bool enableClock;
 
   @override
   State<MainTabs> createState() => _MainTabsState();
@@ -145,6 +150,7 @@ class _MainTabsState extends State<MainTabs> {
             PrayerTimesScreen(
               themeIndex: widget.themeIndex,
               onThemeChanged: widget.onThemeChanged,
+              enableClock: widget.enableClock,
             ),
             const QuranScreen(),
             const AdhkarScreen(),
@@ -189,10 +195,12 @@ class PrayerTimesScreen extends StatefulWidget {
     super.key,
     required this.themeIndex,
     required this.onThemeChanged,
+    this.enableClock = true,
   });
 
   final int themeIndex;
   final ValueChanged<int> onThemeChanged;
+  final bool enableClock;
 
   @override
   State<PrayerTimesScreen> createState() => _PrayerTimesScreenState();
@@ -212,9 +220,11 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) setState(() => _now = DateTime.now());
-    });
+    if (widget.enableClock) {
+      _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+        if (mounted) setState(() => _now = DateTime.now());
+      });
+    }
     _loadCities();
   }
 
