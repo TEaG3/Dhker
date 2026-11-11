@@ -352,7 +352,7 @@ class _AdhanScreenState extends State<AdhanScreen>
                       children: [
                         Expanded(
                           child: DropdownButtonFormField<String>(
-                            value: _sounds[entry.key],
+                            initialValue: _sounds[entry.key],
                             decoration: const InputDecoration(
                               labelText: 'صوت الأذان',
                               isDense: true,
