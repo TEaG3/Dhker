@@ -9,6 +9,7 @@ import 'package:qcf_quran_lite/qcf_quran_lite.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'services/database_helper.dart';
+import 'screens/adhan_screen.dart';
 import 'screens/adhkar_screen.dart';
 
 void main() async {
@@ -61,7 +62,7 @@ class _MainTabsState extends State<MainTabs> {
       const PrayerTimesScreen(),
       const QuranScreen(),
       const AdhkarScreen(),
-      const Center(child: Text('الأذان - قريباً', style: TextStyle(fontSize: 20))),
+      const AdhanScreen(),
     ];
 
     return Scaffold(
@@ -89,7 +90,8 @@ class PrayerTimesScreen extends StatefulWidget {
   State<PrayerTimesScreen> createState() => _PrayerTimesScreenState();
 }
 
-class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
+class _PrayerTimesScreenState extends State<PrayerTimesScreen>
+    with WidgetsBindingObserver {
   List<Map<String, dynamic>> _cities = [];
   Map<String, dynamic>? _city;
   PrayerTimes? _times;
@@ -98,7 +100,21 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadCities();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _city != null) {
+      _recompute();
+    }
   }
 
   Future<void> _loadCities() async {
@@ -116,6 +132,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       });
       _recompute();
     } catch (e) {
+      if (!mounted) return;
       setState(() => _error = 'فشل تحميل المدن: $e');
     }
   }
@@ -123,6 +140,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   Future<void> _selectCity(Map<String, dynamic> city) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('city_id', city['id']);
+    if (!mounted) return;
     setState(() => _city = city);
     _recompute();
   }
