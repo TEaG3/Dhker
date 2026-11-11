@@ -64,22 +64,40 @@ void main() {
       }
     });
 
-    test('both downloaded adhan files are valid non-empty Ogg assets', () async {
-      for (final name in ['adhan_default.ogg', 'adhan_fajr.ogg']) {
+    test('all ten Kiwifu adhan recordings are bundled as MP3 assets', () async {
+      const recordings = [
+        'adhan_muhammad_ramadan_saad.mp3',
+        'adhan_ali_ibn_ahmad_mala.mp3',
+        'adhan_muhammad_khaleel_raml.mp3',
+        'adhan_nayf_fedah.mp3',
+        'adhan_faruq_abdul_rahman_hadrawe.mp3',
+        'adhan_assem_bukhrare.mp3',
+        'adhan_nurdin_hamza_al_maghriby.mp3',
+        'adhan_najee_qazaz.mp3',
+        'adhan_mishary_rashid_alafasy.mp3',
+        'adhan_abdulbasit_abdusamad.mp3',
+      ];
+
+      expect(recordings.toSet(), hasLength(10));
+      for (final name in recordings) {
         final data = await rootBundle.load('assets/adhan/$name');
-        final bytes =
-            data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
-        expect(bytes.length, greaterThan(10000));
-        expect(String.fromCharCodes(bytes.take(4)), 'OggS');
+        expect(data.lengthInBytes, greaterThan(10000), reason: name);
       }
     });
 
-    test('adhan asset manifest documents the two offline recordings', () async {
+    test('adhan asset manifest documents the ten Kiwifu recordings', () async {
       final raw = await rootBundle.loadString('assets/adhan/README.md');
-      expect(raw, contains('adhan_default.ogg'));
-      expect(raw, contains('adhan_fajr.ogg'));
-      expect(raw, contains('CC0'));
-      expect(raw, contains('wikimedia.org'));
+      expect(raw, contains('Kiwifu/adhan-mp3'));
+      expect(raw, contains('محمد رمضان سعد'));
+      expect(raw, contains('علي بن أحمد ملا'));
+      expect(raw, contains('محمد خليل رمل'));
+      expect(raw, contains('نايف فداح'));
+      expect(raw, contains('فاروق عبدالرحمن حضراوي'));
+      expect(raw, contains('عاصم بخراري'));
+      expect(raw, contains('نور الدين حمزة المغربي'));
+      expect(raw, contains('ناجي قزاز'));
+      expect(raw, contains('مشاري راشد العفاسي'));
+      expect(raw, contains('عبد الباسط عبد الصمد'));
     });
   });
 }
