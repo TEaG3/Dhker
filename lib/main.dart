@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:convert';
+import 'dart:ui' as ui;
 
 import 'package:adhan/adhan.dart';
 import 'package:flutter/material.dart';
@@ -1166,7 +1167,7 @@ class _QuranScreenState extends State<QuranScreen> {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
             child: TextField(
               onChanged: (value) => setState(() => _query = value.trim()),
-              textDirection: TextDirection.rtl,
+              textDirection: ui.TextDirection.rtl,
               decoration: InputDecoration(
                 hintText: 'ابحث عن سورة...',
                 prefixIcon: const Icon(Icons.search),
