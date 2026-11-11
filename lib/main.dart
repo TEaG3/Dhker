@@ -543,6 +543,11 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen>
               ],
             ),
           ),
+          const SizedBox(height: 14),
+          _HijriCalendarPreview(
+            date: _now,
+            onTap: () => _openPage(const HijriCalendarScreen()),
+          ),
           const SizedBox(height: 22),
           Row(
             children: [
@@ -969,6 +974,130 @@ class _ClockPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _ClockPainter oldDelegate) =>
       oldDelegate.time.second != time.second;
+}
+
+class _HijriCalendarPreview extends StatelessWidget {
+  const _HijriCalendarPreview({
+    required this.date,
+    required this.onTap,
+  });
+
+  final DateTime date;
+  final VoidCallback onTap;
+
+  static const _weekDays = ['أحد', 'إثن', 'ثلا', 'أرب', 'خمي', 'جمع', 'سبت'];
+
+  @override
+  Widget build(BuildContext context) {
+    final today = HijriDate.fromDate(date);
+    final month = HijriDate.fromHijri(today.hYear, today.hMonth, 1);
+    final monthLength = month.lengthOfMonth;
+    final firstGregorian = month.hijriToGregorian(today.hYear, today.hMonth, 1);
+    final offset = firstGregorian.weekday % 7;
+    final cellCount = ((offset + monthLength + 6) ~/ 7) * 7;
+    final days = List<int>.generate(cellCount, (index) {
+      final day = index - offset + 1;
+      return day >= 1 && day <= monthLength ? day : 0;
+    });
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  const Icon(
+                    LucideIcons.calendarDays,
+                    color: Color(0xFFC6A76A),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'التقويم الهجري',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                  ),
+                  Text(
+                    '${month.getLongMonthName()} ${today.hYear} هـ',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(LucideIcons.chevronLeft, size: 18),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  for (final dayName in _weekDays)
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          dayName,
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: days.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 7,
+                  childAspectRatio: 1.65,
+                ),
+                itemBuilder: (context, index) {
+                  final day = days[index];
+                  if (day == 0) return const SizedBox.shrink();
+                  final isToday = day == today.hDay;
+                  final scheme = Theme.of(context).colorScheme;
+                  return Container(
+                    margin: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: isToday
+                          ? scheme.primary
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(9),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      day.toString(),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: isToday ? scheme.onPrimary : scheme.onSurface,
+                            fontWeight:
+                                isToday ? FontWeight.bold : FontWeight.normal,
+                          ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 6),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Text(
+                  'اضغط لفتح التقويم الكامل',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class HijriCalendarScreen extends StatefulWidget {
