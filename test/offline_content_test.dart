@@ -27,15 +27,15 @@ void main() {
     test('adhkar categories and repeat counts are populated', () async {
       final raw = await rootBundle.loadString('assets/data/adhkar.json');
       final data = jsonDecode(raw) as Map<String, dynamic>;
-      final categories = (data['categories'] as List)
-          .cast<Map<String, dynamic>>();
+      final categories =
+          (data['categories'] as List).cast<Map<String, dynamic>>();
 
       expect(categories, isNotEmpty);
       for (final category in categories) {
         expect(category['id'], isA<String>());
         expect(category['title'], isA<String>());
-        final items = (category['items'] as List)
-            .cast<Map<String, dynamic>>();
+        final items =
+            (category['items'] as List).cast<Map<String, dynamic>>();
         expect(items, isNotEmpty);
         for (final item in items) {
           expect(item['text'], isA<String>());
@@ -51,7 +51,8 @@ void main() {
       final adhkarRaw = await rootBundle.loadString('assets/data/adhkar.json');
       final refsRaw = await rootBundle.loadString('assets/data/references.json');
       final categories =
-          (jsonDecode(adhkarRaw)['categories'] as List).cast<Map<String, dynamic>>();
+          (jsonDecode(adhkarRaw)['categories'] as List)
+              .cast<Map<String, dynamic>>();
       final refs = (jsonDecode(refsRaw)['references'] as List)
           .cast<Map<String, dynamic>>();
       final refIds = refs.map((ref) => ref['id']).toSet();
@@ -63,7 +64,17 @@ void main() {
       }
     });
 
-    test('both downloaded adhan files are valid non-empty Ogg assets', () async {\n      for (final name in ['adhan_default.ogg', 'adhan_fajr.ogg']) {\n        final data = await rootBundle.load('assets/adhan/$name');\n        final bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);\n        expect(bytes.length, greaterThan(10000));\n        expect(String.fromCharCodes(bytes.take(4)), 'OggS');\n      }\n    });\n\n    test('adhan asset manifest documents the two offline recordings', () async {
+    test('both downloaded adhan files are valid non-empty Ogg assets', () async {
+      for (final name in ['adhan_default.ogg', 'adhan_fajr.ogg']) {
+        final data = await rootBundle.load('assets/adhan/$name');
+        final bytes =
+            data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+        expect(bytes.length, greaterThan(10000));
+        expect(String.fromCharCodes(bytes.take(4)), 'OggS');
+      }
+    });
+
+    test('adhan asset manifest documents the two offline recordings', () async {
       final raw = await rootBundle.loadString('assets/adhan/README.md');
       expect(raw, contains('adhan_default.ogg'));
       expect(raw, contains('adhan_fajr.ogg'));
