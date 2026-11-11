@@ -291,7 +291,7 @@ class _AdhkarDetailScreenState extends State<AdhkarDetailScreen> {
     final safe = count.clamp(0, target).toInt();
     setState(() => _progress[id] = safe);
     final preferences = await SharedPreferences.getInstance();
-    await preferences.setInt('adhkar_count_$_dateKey_$id', safe);
+    await preferences.setInt('adhkar_count_${_dateKey}_$id', safe);
   }
 
   @override
@@ -402,7 +402,6 @@ class _DhikrCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = item['text']?.toString() ?? '';
-    final id = item['id'].toString();
     final target = (item['repeat_count'] as num?)?.toInt() ?? 1;
     final safeCount = count.clamp(0, target).toInt();
     final completed = safeCount >= target;
