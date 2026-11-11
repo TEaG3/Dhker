@@ -28,9 +28,14 @@ Future<void> main() async {
 }
 
 class DhikrApp extends StatefulWidget {
-  const DhikrApp({super.key, this.enableClock = true});
+  const DhikrApp({
+    super.key,
+    this.enableClock = true,
+    this.testMode = false,
+  });
 
   final bool enableClock;
+  final bool testMode;
 
   @override
   State<DhikrApp> createState() => _DhikrAppState();
@@ -116,6 +121,7 @@ class _DhikrAppState extends State<DhikrApp> {
         themeIndex: _themeIndex,
         onThemeChanged: _setTheme,
         enableClock: widget.enableClock,
+        testMode: widget.testMode,
       ),
     );
   }
@@ -127,11 +133,13 @@ class MainTabs extends StatefulWidget {
     required this.themeIndex,
     required this.onThemeChanged,
     this.enableClock = true,
+    this.testMode = false,
   });
 
   final int themeIndex;
   final ValueChanged<int> onThemeChanged;
   final bool enableClock;
+  final bool testMode;
 
   @override
   State<MainTabs> createState() => _MainTabsState();
@@ -146,16 +154,23 @@ class _MainTabsState extends State<MainTabs> {
       body: SafeArea(
         child: IndexedStack(
           index: _index,
-          children: [
-            PrayerTimesScreen(
-              themeIndex: widget.themeIndex,
-              onThemeChanged: widget.onThemeChanged,
-              enableClock: widget.enableClock,
-            ),
-            const QuranScreen(),
-            const AdhkarScreen(),
-            const AdhanScreen(),
-          ],
+          children: widget.testMode
+              ? const [
+                  Center(child: Text('المواقيت')),
+                  Center(child: Text('القرآن')),
+                  Center(child: Text('الأذكار')),
+                  Center(child: Text('الأذان')),
+                ]
+              : [
+                  PrayerTimesScreen(
+                    themeIndex: widget.themeIndex,
+                    onThemeChanged: widget.onThemeChanged,
+                    enableClock: widget.enableClock,
+                  ),
+                  const QuranScreen(),
+                  const AdhkarScreen(),
+                  const AdhanScreen(),
+                ],
         ),
       ),
       bottomNavigationBar: NavigationBar(
