@@ -79,17 +79,15 @@ jobs:
             build/app/outputs/flutter-apk/SHA256SUMS.txt
           retention-days: 30
 
-      - name: Publish tested beta release
+      - name: Update tested beta release assets
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create v0.1.0-beta.1 \
+          gh release upload v0.1.0-beta.1 \
             build/app/outputs/flutter-apk/app-release.apk \
             build/app/outputs/flutter-apk/SHA256SUMS.txt \
-            --title "ذِكر v0.1.0-beta.1" \
-            --notes "أول إصدار تجريبي عام من تطبيق ذِكر. يتضمن مواقيت الصلاة والأذكار والميزات المتاحة في هذا البناء. يُرجى اختباره على جهاز Android والإبلاغ عن المشكلات عبر GitHub." \
-            --prerelease
+            --clobber
 
       - name: Attach APK to published GitHub release
         if: github.event_name == 'release'
