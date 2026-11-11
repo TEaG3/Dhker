@@ -10,7 +10,6 @@ import 'package:quran_library/quran_library.dart';
 class QuranLibraryPreviewScreen extends StatelessWidget {
   const QuranLibraryPreviewScreen({super.key});
 
-  static const _mushafGreen = Color(0xFF1C2B12);
   static const _paper = Color(0xFFF6E7A4);
   static const _ink = Color(0xFF211F18);
   static const _sage = Color(0xFF477A5D);
@@ -32,7 +31,7 @@ class QuranLibraryPreviewScreen extends StatelessWidget {
       scaffoldBackgroundColor: _paper,
       appBarTheme: const AppBarTheme(
         backgroundColor: _paper,
-        foregroundColor: _paper,
+        foregroundColor: _ink,
         elevation: 0,
         centerTitle: true,
       ),
@@ -52,7 +51,7 @@ class QuranLibraryPreviewScreen extends StatelessWidget {
           showAyahBookmarkedIcon: true,
           isDark: false,
           appLanguageCode: 'ar',
-          backgroundColor: _mushafGreen,
+          backgroundColor: _paper,
           textColor: _ink,
           ayahSelectedBackgroundColor: const Color(0x55477A5D),
           ayahIconColor: _gold,
