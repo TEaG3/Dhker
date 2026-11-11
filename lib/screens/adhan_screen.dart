@@ -36,11 +36,11 @@ class _AdhanScreenState extends State<AdhanScreen>
     'isha': true,
   };
   Map<String, String> _sounds = {
-    'fajr': 'adhan_fajr',
-    'dhuhr': 'adhan_default',
-    'asr': 'adhan_default',
-    'maghrib': 'adhan_default',
-    'isha': 'adhan_default',
+    'fajr': 'adhan_muhammad_ramadan_saad',
+    'dhuhr': 'adhan_muhammad_ramadan_saad',
+    'asr': 'adhan_muhammad_ramadan_saad',
+    'maghrib': 'adhan_muhammad_ramadan_saad',
+    'isha': 'adhan_muhammad_ramadan_saad',
   };
   bool _notificationsEnabled = false;
   bool _loading = true;
@@ -57,8 +57,16 @@ class _AdhanScreenState extends State<AdhanScreen>
   };
 
   static const _soundNames = <String, String>{
-    'adhan_default': 'الأذان الأساسي',
-    'adhan_fajr': 'أذان الفجر',
+    'adhan_muhammad_ramadan_saad': 'محمد رمضان سعد — الحرم المكي',
+    'adhan_ali_ibn_ahmad_mala': 'علي بن أحمد ملا — الحرم المكي',
+    'adhan_muhammad_khaleel_raml': 'محمد خليل رمل — الحرم المكي',
+    'adhan_nayf_fedah': 'نايف فداح — الحرم المكي',
+    'adhan_faruq_abdul_rahman_hadrawe': 'فاروق عبدالرحمن حضراوي — الحرم المكي',
+    'adhan_assem_bukhrare': 'عاصم بخراري — الحرم المكي',
+    'adhan_nurdin_hamza_al_maghriby': 'نور الدين حمزة المغربي — المسجد الأقصى',
+    'adhan_najee_qazaz': 'ناجي قزاز — المسجد الأقصى',
+    'adhan_mishary_rashid_alafasy': 'مشاري راشد العفاسي — الكويت',
+    'adhan_abdulbasit_abdusamad': 'عبد الباسط عبد الصمد — مصر',
   };
 
   @override
@@ -205,7 +213,7 @@ class _AdhanScreenState extends State<AdhanScreen>
       }
       await _audioPlayer.stop();
       if (mounted) setState(() => _previewing = prayerId);
-      await _audioPlayer.play(AssetSource('adhan/$sound.ogg'));
+      await _audioPlayer.play(AssetSource('adhan/$sound.mp3'));
     } catch (error) {
       if (!mounted) return;
       setState(() => _previewing = null);
@@ -268,7 +276,7 @@ class _AdhanScreenState extends State<AdhanScreen>
         }
 
         final sound = _sounds[entry.key]!;
-        final channelId = 'prayer_${entry.key}_${sound}_v2';
+        final channelId = 'prayer_${entry.key}_${sound}_v3';
         final androidDetails = AndroidNotificationDetails(
           channelId,
           'أذان ${_prayers[entry.key]}',
