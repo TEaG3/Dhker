@@ -11,7 +11,8 @@ class AdhanScreen extends StatefulWidget {
 }
 
 class _AdhanScreenState extends State<AdhanScreen> {
-  final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _notificationsPlugin =
+      FlutterLocalNotificationsPlugin();
   bool _fajrEnabled = true;
   bool _dhuhrEnabled = true;
   bool _asrEnabled = true;
@@ -27,26 +28,31 @@ class _AdhanScreenState extends State<AdhanScreen> {
 
   Future<void> _initNotifications() async {
     tz.initializeTimeZones();
-    const AndroidInitializationSettings androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const InitializationSettings initSettings = InitializationSettings(android: androidInit);
+    const AndroidInitializationSettings androidInit =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const InitializationSettings initSettings =
+        InitializationSettings(android: androidInit);
     await _notificationsPlugin.initialize(initSettings);
   }
 
-  Future<void> _scheduleAdhan(String prayerName, int hour, int minute) async {
+  Future<void> _scheduleAdhan(
+      String prayerName, int hour, int minute) async {
     final now = tz.TZDateTime.now(tz.local);
-    var scheduledDate = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+    var scheduledDate =
+        tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
     if (scheduledDate.isBefore(now)) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
 
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
       'adhan_channel',
       'أوقات الأذان',
       channelDescription: 'تنبيهات صوتية لأوقات الصلاة',
       importance: Importance.max,
       priority: Priority.high,
       playSound: true,
-      sound: RawResourceAndroidNotificationSound('adhan_makkah'), // اسم الملف في res/raw
+      sound: RawResourceAndroidNotificationSound('adhan_makkah'),
     );
 
     await _notificationsPlugin.zonedSchedule(
@@ -56,11 +62,15 @@ class _AdhanScreenState extends State<AdhanScreen> {
       scheduledDate,
       const NotificationDetails(android: androidDetails),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
     );
 
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('تم جدولة أذان $prayerName في $hour:$minute')),
+      SnackBar(
+        content: Text('تم جدولة أذان $prayerName في $hour:$minute'),
+      ),
     );
   }
 
@@ -82,13 +92,18 @@ class _AdhanScreenState extends State<AdhanScreen> {
               trailing: const Icon(Icons.arrow_drop_down),
               onTap: () {
                 setState(() {
-                  _selectedAdhan = _selectedAdhan == 'أذان الحرم المكي' ? 'أذان الحرم المدني' : 'أذان الحرم المكي';
+                  _selectedAdhan = _selectedAdhan == 'أذان الحرم المكي'
+                      ? 'أذان الحرم المدني'
+                      : 'أذان الحرم المكي';
                 });
               },
             ),
           ),
           const SizedBox(height: 16),
-          const Text('تفعيل الأذان لكل صلاة:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const Text(
+            'تفعيل الأذان لكل صلاة:',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
           SwitchListTile(
             title: const Text('الفجر'),
             value: _fajrEnabled,

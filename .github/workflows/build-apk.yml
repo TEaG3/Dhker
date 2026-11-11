@@ -3,7 +3,7 @@ name: Build Android APK
 on:
   push:
     branches:
-      - feat/database-foundation
+      - main
   pull_request:
     branches:
       - main
@@ -11,12 +11,18 @@ on:
   release:
     types: [published]
 
+concurrency:
+  group: android-build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
 jobs:
   build:
+    name: Analyze, test, and build APK
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -27,11 +33,17 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up current stable Flutter
+      - name: Set up stable Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: '3.47.9'
           cache: true
+
+      - name: Show tool versions
+        run: |
+          flutter --version
+          dart --version
+          java -version
 
       - name: Install dependencies
         run: flutter pub get
@@ -40,7 +52,7 @@ jobs:
         run: flutter analyze
 
       - name: Run tests
-        run: flutter test
+        run: flutter test --reporter expanded
 
       - name: Build release APK
         run: flutter build apk --release

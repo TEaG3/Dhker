@@ -1,4 +1,6 @@
 import 'dart:convert';
+
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/services.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
@@ -94,8 +96,9 @@ class DatabaseHelper {
           });
         }
       }
-    } catch (e) {
-      print('خطأ أثناء زرع البيانات: $e');
+    } catch (e, stackTrace) {
+      debugPrint('خطأ أثناء زرع البيانات: $e');
+      debugPrintStack(stackTrace: stackTrace);
     }
   }
 
@@ -107,7 +110,7 @@ class DatabaseHelper {
   Future<List<Map<String, dynamic>>> getAdhkarByCategory(String categoryId) async {
     final db = await database;
     return await db.rawQuery('''
-      SELECT a.*, r.book_name, r.hadith_number, r.grade 
+      SELECT a.*, r.book_name, r.hadith_number, r.grade
       FROM adhkar a
       LEFT JOIN references r ON a.reference_id = r.id
       WHERE a.category_id = ?
