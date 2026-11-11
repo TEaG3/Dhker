@@ -1328,19 +1328,6 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
   }
 }
 
-String _prayerName(Prayer prayer) {
-  const names = {
-    Prayer.fajr: 'الفجر',
-    Prayer.sunrise: 'الشروق',
-    Prayer.dhuhr: 'الظهر',
-    Prayer.asr: 'العصر',
-    Prayer.maghrib: 'المغرب',
-    Prayer.isha: 'العشاء',
-    Prayer.none: '—',
-  };
-  return names[prayer] ?? '—';
-}
-
 Route<void> _softRoute(Widget page) {
   return PageRouteBuilder<void>(
     pageBuilder: (_, __, ___) => page,
