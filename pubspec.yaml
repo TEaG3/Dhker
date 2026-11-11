@@ -35,3 +35,4 @@ flutter:
     - assets/data/cities.json
     - assets/data/adhkar.json
     - assets/data/references.json
+    - assets/adhan/
