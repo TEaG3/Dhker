@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets('يعرض التطبيق وجهات التنقل الرئيسية', (tester) async {
-    await tester.pumpWidget(const DhikrApp());
+    await tester.pumpWidget(const DhikrApp(enableClock: false));
     await tester.pump();
 
     expect(find.text('المواقيت'), findsOneWidget);
