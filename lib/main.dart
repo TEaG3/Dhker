@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:convert';
-import 'dart:ui' show FontFeature;
 
 import 'package:adhan/adhan.dart';
 import 'package:flutter/material.dart';
@@ -1310,7 +1309,7 @@ class _QuranReaderScreenState extends State<QuranReaderScreen> {
         color: const Color(0xFFF2E8D3),
         child: QuranPageView(
           pageController: _pageController,
-          highlights: <HighlightVerse>[],
+          highlights: const <HighlightVerse>[],
           isDarkMode: false,
           scrollDirection: Axis.horizontal,
           pageSnapping: true,
