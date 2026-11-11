@@ -10,5 +10,10 @@ void main() {
     expect(find.text('القرآن'), findsOneWidget);
     expect(find.text('الأذكار'), findsOneWidget);
     expect(find.text('الأذان'), findsOneWidget);
+
+    // Explicitly unmount the app so periodic home-screen resources are disposed
+    // before the widget test verifies that no timers remain.
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
   });
 }
