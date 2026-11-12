@@ -147,8 +147,9 @@ jobs:
         run: flutter test --reporter expanded
 
       - name: Build signed release APKs and Play Store bundle
+        # Keep ANDROID_KEYSTORE_PASSWORD from GITHUB_ENV: the normalize step
+        # intentionally changes it to the password of the normalized JKS.
         env:
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
