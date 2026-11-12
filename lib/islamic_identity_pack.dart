@@ -15,7 +15,9 @@ class DhkerIdentityWrapper extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        child,
+        // Keep decorative geometry behind all screen content. Painting it
+        // above the child reduced contrast over Quran text and could obscure
+        // ayat on the Mushaf reader.
         Positioned.fill(
           child: IgnorePointer(
             child: ExcludeSemantics(
@@ -29,6 +31,7 @@ class DhkerIdentityWrapper extends StatelessWidget {
             ),
           ),
         ),
+        child,
       ],
     );
   }
