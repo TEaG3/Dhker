@@ -57,9 +57,29 @@ jobs:
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/dhker-upload-key.jks"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > "$RUNNER_TEMP/dhker-upload-key.jks"
           chmod 600 "$RUNNER_TEMP/dhker-upload-key.jks"
+          test -s "$RUNNER_TEMP/dhker-upload-key.jks"
           echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/dhker-upload-key.jks" >> "$GITHUB_ENV"
+
+      - name: Validate Android release keystore and key password
+        if: github.ref == 'refs/heads/main'
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if ! keytool -list -keystore "$ANDROID_KEYSTORE_FILE" -storepass "$ANDROID_KEYSTORE_PASSWORD" >/dev/null 2>&1; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 is not a valid keystore, or ANDROID_KEYSTORE_PASSWORD is incorrect."
+            exit 1
+          fi
+          if ! keytool -certreq -alias "$ANDROID_KEY_ALIAS" -keystore "$ANDROID_KEYSTORE_FILE" -storepass "$ANDROID_KEYSTORE_PASSWORD" -keypass "$ANDROID_KEY_PASSWORD" -file "$RUNNER_TEMP/dhker-signing-check.csr" >/dev/null 2>&1; then
+            echo "::error::Keystore is readable, but ANDROID_KEY_ALIAS or ANDROID_KEY_PASSWORD is incorrect, or the alias is not a private-key entry."
+            exit 1
+          fi
+          rm -f "$RUNNER_TEMP/dhker-signing-check.csr"
+          echo "Android release keystore and private-key password validated."
 
       - name: Show tool versions
         run: |
