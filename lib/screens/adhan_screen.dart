@@ -182,6 +182,20 @@ class _AdhanScreenState extends State<AdhanScreen>
       if (!mounted) return;
       setState(() => _notificationsEnabled = true);
       await _scheduleUpcomingPrayers();
+      final android = _notificationsPlugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
+      final exactAlarmsAvailable =
+          await android?.canScheduleExactNotifications() ?? false;
+      if (!exactAlarmsAvailable && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'التنبيهات مفعّلة، لكن قد تصل متأخرة قليلاً لأن المنبهات الدقيقة غير مسموحة في الجهاز.',
+            ),
+          ),
+        );
+      }
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
