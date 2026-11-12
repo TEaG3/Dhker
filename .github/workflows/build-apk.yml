@@ -164,10 +164,3 @@ jobs:
               --notes "الإصدار الرسمي الأول من تطبيق ذِكر. يتضمن ملفات APK منفصلة حسب معمارية Android وملف Android App Bundle للنشر عبر Google Play. تم بناء الإصدار بعد اجتياز التحليل والاختبارات."
           fi
 
-      - name: Attach APK to published GitHub release
-        if: github.event_name == 'release'
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            build/app/outputs/flutter-apk/*.apk
-            build/app/outputs/flutter-apk/SHA256SUMS.txt
