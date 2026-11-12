@@ -193,15 +193,20 @@ class _AdhanScreenState extends State<AdhanScreen>
         );
         return;
       }
-      await _scheduleUpcomingPrayers();
-      final pending = await _notificationsPlugin.pendingNotificationRequests();
-      if (pending.isEmpty) {
-        throw StateError('لم تُجدول أي تنبيهات. تحقق من المدينة وأوقات الصلاة وأذونات الجهاز.');
-      }
+      // Enable the scheduler before requesting the first schedule.
+      // _scheduleUpcomingPrayers() intentionally skips work while disabled.
       final preferences = await SharedPreferences.getInstance();
       await preferences.setBool(_notificationPreferenceKey, true);
       if (!mounted) return;
       setState(() => _notificationsEnabled = true);
+
+      await _scheduleUpcomingPrayers();
+      final pending = await _notificationsPlugin.pendingNotificationRequests();
+      if (pending.isEmpty) {
+        throw StateError(
+          'لم تُجدول أي تنبيهات. تحقق من المدينة وأوقات الصلاة وأذونات الجهاز.',
+        );
+      }
       final android = _notificationsPlugin
           .resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>();
