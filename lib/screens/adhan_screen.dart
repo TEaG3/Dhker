@@ -156,7 +156,9 @@ class _AdhanScreenState extends State<AdhanScreen>
     final notificationGranted =
         await android.requestNotificationsPermission() ?? false;
     if (!notificationGranted) return false;
-    return await android.requestExactAlarmsPermission() ?? false;
+    // Exact alarms are optional: continue with inexact reminders when denied.
+    await android.requestExactAlarmsPermission();
+    return true;
   }
 
   Future<void> _enableNotifications() async {
@@ -238,14 +240,8 @@ class _AdhanScreenState extends State<AdhanScreen>
             AndroidFlutterLocalNotificationsPlugin>();
     if (android == null) return;
 
-    final canSchedule =
+    final canScheduleExact =
         await android.canScheduleExactNotifications() ?? false;
-    if (!canSchedule) {
-      if (mounted) setState(() => _notificationsEnabled = false);
-      final preferences = await SharedPreferences.getInstance();
-      await preferences.setBool(_notificationPreferenceKey, false);
-      return;
-    }
 
     final coordinates = Coordinates(
       (city['lat'] as num).toDouble(),
@@ -302,7 +298,9 @@ class _AdhanScreenState extends State<AdhanScreen>
           'حافظ على صلاتك',
           scheduledAt,
           details,
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          androidScheduleMode: canScheduleExact
+              ? AndroidScheduleMode.exactAllowWhileIdle
+              : AndroidScheduleMode.inexactAllowWhileIdle,
           uiLocalNotificationDateInterpretation:
               UILocalNotificationDateInterpretation.absoluteTime,
         );
