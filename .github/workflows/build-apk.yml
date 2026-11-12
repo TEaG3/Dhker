@@ -90,20 +90,11 @@ jobs:
         run: |
           set -euo pipefail
           normalized="$RUNNER_TEMP/dhker-release-signing.jks"
-          keytool -importkeystore -noprompt \\
-            -srckeystore "$ANDROID_KEYSTORE_FILE" \\
-            -srcstorepass "$ANDROID_KEYSTORE_PASSWORD" \\
-            -srcalias "$ANDROID_KEY_ALIAS" \\
-            -srckeypass "$ANDROID_KEY_PASSWORD" \\
-            -destkeystore "$normalized" \\
-            -deststoretype JKS \\
-            -deststorepass "$ANDROID_KEY_PASSWORD" \\
-            -destkeypass "$ANDROID_KEY_PASSWORD"
+          keytool -importkeystore -noprompt -srckeystore "$ANDROID_KEYSTORE_FILE" -srcstorepass "$ANDROID_KEYSTORE_PASSWORD" -srcalias "$ANDROID_KEY_ALIAS" -srckeypass "$ANDROID_KEY_PASSWORD" -destkeystore "$normalized" -deststoretype JKS -deststorepass "$ANDROID_KEY_PASSWORD" -destkeypass "$ANDROID_KEY_PASSWORD"
           chmod 600 "$normalized"
           keytool -list -keystore "$normalized" -storetype JKS -storepass "$ANDROID_KEY_PASSWORD" -alias "$ANDROID_KEY_ALIAS" >/dev/null
           echo "ANDROID_KEYSTORE_FILE=$normalized" >> "$GITHUB_ENV"
           echo "ANDROID_KEYSTORE_PASSWORD=$ANDROID_KEY_PASSWORD" >> "$GITHUB_ENV"
-
       - name: Show tool versions
         run: |
           flutter --version
