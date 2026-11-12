@@ -50,7 +50,7 @@ class _DhikrAppState extends State<DhikrApp> {
   @override
   void initState() {
     super.initState();
-    _loadTheme();
+    if (!widget.testMode) _loadTheme();
   }
 
   Future<void> _loadTheme() async {
