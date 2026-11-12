@@ -1,5 +1,3 @@
-import 'package:sqflite/sqflite.dart';
-
 import 'dhker_database.dart';
 
 /// Stores tasbih sessions and keeps a local daily count.
