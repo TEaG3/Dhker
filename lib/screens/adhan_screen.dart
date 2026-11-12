@@ -153,11 +153,27 @@ class _AdhanScreenState extends State<AdhanScreen>
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>();
     if (android == null) return false;
-    final notificationGranted =
-        await android.requestNotificationsPermission() ?? false;
-    if (!notificationGranted) return false;
-    // Exact alarms are optional: continue with inexact reminders when denied.
-    await android.requestExactAlarmsPermission();
+
+    // Android versions that do not require the runtime notification prompt
+    // may return null from the permission request. Check the real app setting
+    // first, and only request permission when notifications are disabled.
+    var notificationsAllowed =
+        await android.areNotificationsEnabled() ?? true;
+    if (!notificationsAllowed) {
+      final requestResult = await android.requestNotificationsPermission();
+      notificationsAllowed = requestResult ??
+          await android.areNotificationsEnabled() ??
+          false;
+    }
+    if (!notificationsAllowed) return false;
+
+    // Exact-alarm access is optional. The scheduler falls back to inexact
+    // reminders when Android does not grant this special access.
+    try {
+      await android.requestExactAlarmsPermission();
+    } catch (_) {
+      // Do not block ordinary notification activation on exact-alarm access.
+    }
     return true;
   }
 
@@ -177,11 +193,15 @@ class _AdhanScreenState extends State<AdhanScreen>
         );
         return;
       }
+      await _scheduleUpcomingPrayers();
+      final pending = await _notificationsPlugin.pendingNotificationRequests();
+      if (pending.isEmpty) {
+        throw StateError('لم تُجدول أي تنبيهات. تحقق من المدينة وأوقات الصلاة وأذونات الجهاز.');
+      }
       final preferences = await SharedPreferences.getInstance();
       await preferences.setBool(_notificationPreferenceKey, true);
       if (!mounted) return;
       setState(() => _notificationsEnabled = true);
-      await _scheduleUpcomingPrayers();
       final android = _notificationsPlugin
           .resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>();
@@ -197,7 +217,10 @@ class _AdhanScreenState extends State<AdhanScreen>
         );
       }
     } catch (error) {
+      final preferences = await SharedPreferences.getInstance();
+      await preferences.setBool(_notificationPreferenceKey, false);
       if (!mounted) return;
+      setState(() => _notificationsEnabled = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('تعذر تفعيل التنبيهات: $error')),
       );
