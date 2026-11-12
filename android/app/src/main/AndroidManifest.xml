@@ -8,9 +8,10 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
-        android:label="dhker"
+        android:label="ذِكر"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@drawable/ic_dhker"
+        android:roundIcon="@drawable/ic_dhker">
 
         <activity
             android:name=".MainActivity"
