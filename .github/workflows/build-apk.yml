@@ -92,7 +92,6 @@ jobs:
           normalized="$RUNNER_TEMP/dhker-release-signing.jks"
           keytool -importkeystore -noprompt \\
             -srckeystore "$ANDROID_KEYSTORE_FILE" \\
-            -srcstoretype PKCS12 \\
             -srcstorepass "$ANDROID_KEYSTORE_PASSWORD" \\
             -srcalias "$ANDROID_KEY_ALIAS" \\
             -srckeypass "$ANDROID_KEY_PASSWORD" \\
