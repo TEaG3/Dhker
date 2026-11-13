@@ -22,6 +22,8 @@ class _AdhanScreenState extends State<AdhanScreen>
   static const _notificationPreferenceKey = 'prayer_notifications_enabled';
   static const _enabledPreferenceKey = 'prayer_enabled_';
   static const _soundPreferenceKey = 'prayer_sound_';
+  static const _notificationIdCount = 70;
+  static const _notificationChannelVersion = 'v5';
 
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
@@ -250,6 +252,18 @@ class _AdhanScreenState extends State<AdhanScreen>
     if (_notificationsEnabled) await _scheduleUpcomingPrayers();
   }
 
+  String _adhanAssetPath(String sound) => 'assets/adhan/$sound.mp3';
+
+  Future<void> _verifyAdhanAsset(String sound) async {
+    if (!_soundNames.containsKey(sound)) {
+      throw ArgumentError.value(sound, 'sound', 'صوت أذان غير معروف');
+    }
+    final data = await rootBundle.load(_adhanAssetPath(sound));
+    if (data.lengthInBytes < 1024) {
+      throw StateError('ملف صوت الأذان تالف أو غير مكتمل: ${_soundNames[sound]}');
+    }
+  }
+
   Future<void> _previewSound(String prayerId) async {
     final sound = _sounds[prayerId]!;
     try {
@@ -259,13 +273,14 @@ class _AdhanScreenState extends State<AdhanScreen>
         return;
       }
       await _audioPlayer.stop();
+      await _verifyAdhanAsset(sound);
       if (mounted) setState(() => _previewing = prayerId);
       await _audioPlayer.play(AssetSource('adhan/$sound.mp3'));
     } catch (error) {
       if (!mounted) return;
       setState(() => _previewing = null);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تعذر تشغيل معاينة الأذان: $error')),
+        SnackBar(content: Text('تعذر تشغيل معاينة الأذان. تحقق من ملف الصوت: $error')),
       );
     }
   }
@@ -295,7 +310,17 @@ class _AdhanScreenState extends State<AdhanScreen>
     final parameters = CalculationMethod.values[methodIndex].getParameters();
     final now = DateTime.now();
 
-    await _notificationsPlugin.cancelAll();
+    // Validate every selected bundled sound before replacing scheduled reminders.
+    for (final prayerId in _prayers.keys) {
+      if (_enabled[prayerId] == true) {
+        await _verifyAdhanAsset(_sounds[prayerId]!);
+      }
+    }
+
+    // Cancel only prayer reminder IDs; keep unrelated notifications intact.
+    for (var id = 0; id < _notificationIdCount; id++) {
+      await _notificationsPlugin.cancel(id);
+    }
 
     for (var dayOffset = 0; dayOffset < 7; dayOffset++) {
       final date = DateTime(now.year, now.month, now.day + dayOffset);
@@ -320,7 +345,7 @@ class _AdhanScreenState extends State<AdhanScreen>
         }
 
         final sound = _sounds[entry.key]!;
-        final channelId = 'prayer_${entry.key}_${sound}_v4';
+        final channelId = 'prayer_${entry.key}_${sound}_$_notificationChannelVersion';
         final androidDetails = AndroidNotificationDetails(
           channelId,
           'أذان ${_prayers[entry.key]}',
@@ -330,6 +355,8 @@ class _AdhanScreenState extends State<AdhanScreen>
           playSound: true,
           sound: RawResourceAndroidNotificationSound(sound),
           audioAttributesUsage: AudioAttributesUsage.alarm,
+          enableVibration: true,
+          category: AndroidNotificationCategory.alarm,
         );
         final details = NotificationDetails(android: androidDetails);
         final scheduledAt = tz.TZDateTime.from(entry.value, tz.local);
