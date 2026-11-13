@@ -320,7 +320,7 @@ class _AdhanScreenState extends State<AdhanScreen>
         }
 
         final sound = _sounds[entry.key]!;
-        final channelId = 'prayer_${entry.key}_${sound}_v3';
+        final channelId = 'prayer_${entry.key}_${sound}_v4';
         final androidDetails = AndroidNotificationDetails(
           channelId,
           'أذان ${_prayers[entry.key]}',
