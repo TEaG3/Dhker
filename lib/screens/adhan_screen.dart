@@ -413,10 +413,65 @@ class _AdhanScreenState extends State<AdhanScreen>
               ),
             ),
           const SizedBox(height: 12),
-          const Text(
-            'اختر صوت الأذان لكل صلاة، ويمكنك الاستماع إلى معاينة قبل اعتماده:',
-            style: TextStyle(fontWeight: FontWeight.bold),
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
+                colors: [Color(0xFF0F6B5A), Color(0xFF123D38)],
+              ),
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(color: const Color(0x55C6A76A)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(
+                    Icons.notifications_active_outlined,
+                    color: Color(0xFFF3DFB2),
+                    size: 27,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'تنبيهات الصلاة',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'اختر المؤذن، استمع للمعاينة، ثم فعّل التنبيهات',
+                        style: TextStyle(
+                          color: Color(0xFFE0E8E2),
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
+          const SizedBox(height: 18),
+          const Text(
+            'إعداد صوت كل صلاة',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+          ),
+          const SizedBox(height: 8),
           const SizedBox(height: 8),
           for (final entry in _prayers.entries)
             Card(
