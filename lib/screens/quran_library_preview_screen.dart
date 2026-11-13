@@ -10,9 +10,9 @@ import 'package:quran_library/quran_library.dart';
 class QuranLibraryPreviewScreen extends StatelessWidget {
   const QuranLibraryPreviewScreen({super.key});
 
-  static const _paper = Color(0xFFF6E7A4);
+  static const _paper = Color(0xFFF4F0E6);
   static const _ink = Color(0xFF211F18);
-  static const _sage = Color(0xFF477A5D);
+  static const _sage = Color(0xFF0F6B5A);
   static const _gold = Color(0xFFC6A76A);
 
   @override
@@ -29,6 +29,15 @@ class QuranLibraryPreviewScreen extends StatelessWidget {
         onSurface: _ink,
       ),
       scaffoldBackgroundColor: _paper,
+      cardTheme: CardThemeData(
+        color: const Color(0xFFFFFCF5),
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Color(0xFFD7C7A2)),
+        ),
+      ),
       appBarTheme: const AppBarTheme(
         backgroundColor: _paper,
         foregroundColor: _ink,
