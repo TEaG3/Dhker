@@ -27,6 +27,8 @@ Future<void> main() async {
   HijriDate.setLocal('ar');
   await DatabaseHelper().database;
   await QuranLibrary.init();
+  // Enable online word-by-word Quran recitation audio.
+  QuranLibrary.initWordAudio();
   runApp(const DhikrApp());
 }
 
