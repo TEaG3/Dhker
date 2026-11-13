@@ -133,10 +133,25 @@ jobs:
           download_adhan "Abdulbasit_Abdusamad_1_-_Egypt_(عبد_الباسط_عبد_الصمد_-_مصر).mp3" "assets/adhan/adhan_abdulbasit_abdusamad.mp3"
           cp assets/adhan/*.mp3 android/app/src/main/res/raw/
           test "$(find assets/adhan -maxdepth 1 -type f -name '*.mp3' | wc -l)" -eq 10
-          for audio in assets/adhan/*.mp3 android/app/src/main/res/raw/*.mp3; do
-            test -s "$audio"
-            file --mime-type "$audio" | grep -q 'audio/mpeg'
+          expected=(
+            adhan_muhammad_ramadan_saad
+            adhan_ali_ibn_ahmad_mala
+            adhan_muhammad_khaleel_raml
+            adhan_nayf_fedah
+            adhan_faruq_abdul_rahman_hadrawe
+            adhan_assem_bukhrare
+            adhan_nurdin_hamza_al_maghriby
+            adhan_najee_qazaz
+            adhan_mishary_rashid_alafasy
+            adhan_abdulbasit_abdusamad
+          )
+          for name in "${expected[@]}"; do
+            for audio in "assets/adhan/$name.mp3" "android/app/src/main/res/raw/$name.mp3"; do
+              test -s "$audio"
+              file --mime-type "$audio" | grep -q 'audio/mpeg'
+            done
           done
+          test "$(find android/app/src/main/res/raw -maxdepth 1 -type f -name '*.mp3' | wc -l)" -eq 10
       - name: Install dependencies
         run: flutter pub get
 
@@ -165,10 +180,32 @@ jobs:
           python3 - <<'PY'
           import glob
           import zipfile
-          for path in glob.glob("flutter-apk/*.apk") + glob.glob("bundle/release/*.aab"):
-              print(f"=== Largest entries: {path} ===")
+
+          expected = [
+              "adhan_muhammad_ramadan_saad",
+              "adhan_ali_ibn_ahmad_mala",
+              "adhan_muhammad_khaleel_raml",
+              "adhan_nayf_fedah",
+              "adhan_faruq_abdul_rahman_hadrawe",
+              "adhan_assem_bukhrare",
+              "adhan_nurdin_hamza_al_maghriby",
+              "adhan_najee_qazaz",
+              "adhan_mishary_rashid_alafasy",
+              "adhan_abdulbasit_abdusamad",
+          ]
+          packages = glob.glob("flutter-apk/*.apk") + glob.glob("bundle/release/*.aab")
+          if not packages:
+              raise SystemExit("No Android APK/AAB outputs found")
+          for path in packages:
+              print(f"=== Inspecting {path} ===")
               with zipfile.ZipFile(path) as archive:
-                  entries = sorted(archive.infolist(), key=lambda item: item.file_size, reverse=True)[:15]
+                  names = archive.namelist()
+                  for sound in expected:
+                      suffix = f"/res/raw/{sound}.mp3"
+                      if not any(name.endswith(suffix) for name in names):
+                          raise SystemExit(f"Missing Android raw sound resource {sound} in {path}")
+                  print(f"Verified all {len(expected)} adhan raw resources in {path}")
+                  entries = sorted(archive.infolist(), key=lambda item: item.file_size, reverse=True)[:10]
                   for item in entries:
                       print(f"{item.file_size:>12}  {item.filename}")
           PY
