@@ -3,7 +3,9 @@
 ## Current implementation
 
 - The primary Quran tab now opens `quran_library` (MIT package code) using its Madinah Mushaf/Hafs rendering, page view, Arabic interface, ayah selection, bookmarks, search/index, tafsir and audio surfaces.
-- `QuranLibrary.init()` is called before `runApp` in `lib/main.dart`.
+- `QuranLibrary.init()` and `QuranLibrary.initWordAudio()` are called before `runApp` in `lib/main.dart`.
+- Quran recitation uses `quran_library`'s online reciter/audio player and per-surah download manager. Streaming requires an internet connection; downloaded surahs can be played offline.
+- Android declares `INTERNET`, and `MainActivity` extends `AudioServiceActivity` for background/lock-screen playback controls.
 - Android `MainActivity` already extends `AudioServiceActivity`, which is the package requirement for system/lock-screen audio controls.
 - The former `qcf_quran_lite` reader remains in `main.dart`; it has not been deleted or overwritten and can be retained as a fallback while the new reader is verified.
 - The reader is styled with a deep olive surround, warm paper palette, sage selection colour and gold controls. The package's Quran page renderer is used for the actual Quran text and page layout.
