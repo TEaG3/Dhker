@@ -177,10 +177,19 @@ jobs:
           set -euo pipefail
           cd build/app/outputs
           ls -lh flutter-apk/*.apk bundle/release/*.aab
-          python3 - <<'PY'
+          # APK resources are compiled by aapt2; checking ZIP filenames alone is brittle.
+          AAPT="$(find "$ANDROID_HOME/build-tools" -type f -name aapt -print -quit)"
+          if [ -z "$AAPT" ]; then
+            echo "::error::Android aapt tool was not found."
+            exit 1
+          fi
+          python3 - "$AAPT" <<'PY'
           import glob
+          import subprocess
+          import sys
           import zipfile
 
+          aapt = sys.argv[1]
           expected = [
               "adhan_muhammad_ramadan_saad",
               "adhan_ali_ibn_ahmad_mala",
@@ -193,23 +202,40 @@ jobs:
               "adhan_mishary_rashid_alafasy",
               "adhan_abdulbasit_abdusamad",
           ]
-          packages = glob.glob("flutter-apk/*.apk") + glob.glob("bundle/release/*.aab")
-          if not packages:
-              raise SystemExit("No Android APK/AAB outputs found")
-          for path in packages:
-              print(f"=== Inspecting {path} ===")
+          apks = glob.glob("flutter-apk/*.apk")
+          bundles = glob.glob("bundle/release/*.aab")
+          if not apks or not bundles:
+              raise SystemExit("Expected APK and AAB build outputs were not found")
+
+          for path in apks:
+              result = subprocess.run(
+                  [aapt, "dump", "resources", path],
+                  check=True, capture_output=True, text=True,
+              )
+              resource_table = result.stdout
+              missing = [name for name in expected if f"raw/{name}" not in resource_table]
+              if missing:
+                  raise SystemExit(
+                      f"APK {path} is missing compiled Android raw resources: {', '.join(missing)}"
+                  )
+              print(f"Verified all {len(expected)} compiled raw resources in {path}")
+
+          for path in bundles:
               with zipfile.ZipFile(path) as archive:
                   names = archive.namelist()
-                  for sound in expected:
-                      suffix = f"res/raw/{sound}.mp3"
-                      if not any(name.endswith(suffix) for name in names):
-                          raise SystemExit(f"Missing Android raw sound resource {sound} in {path}. Checked ZIP entries ending with {suffix}")
-                  print(f"Verified all {len(expected)} adhan raw resources in {path}")
-                  entries = sorted(archive.infolist(), key=lambda item: item.file_size, reverse=True)[:10]
-                  for item in entries:
-                      print(f"{item.file_size:>12}  {item.filename}")
-          PY
-          cd flutter-apk
+                  missing = [
+                      name for name in expected
+                      if not any(
+                          entry.endswith(f"/res/raw/{name}.mp3")
+                          for entry in names
+                      )
+                  ]
+                  if missing:
+                      raise SystemExit(
+                          f"AAB {path} is missing raw audio files: {', '.join(missing)}"
+                      )
+              print(f"Verified all {len(expected)} raw audio files in {path}")
+          PY          cd flutter-apk
           sha256sum *.apk ../bundle/release/*.aab > SHA256SUMS.txt
 
       - name: Upload APK artifacts
