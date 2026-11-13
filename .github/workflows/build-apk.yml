@@ -201,9 +201,9 @@ jobs:
               with zipfile.ZipFile(path) as archive:
                   names = archive.namelist()
                   for sound in expected:
-                      suffix = f"/res/raw/{sound}.mp3"
+                      suffix = f"res/raw/{sound}.mp3"
                       if not any(name.endswith(suffix) for name in names):
-                          raise SystemExit(f"Missing Android raw sound resource {sound} in {path}")
+                          raise SystemExit(f"Missing Android raw sound resource {sound} in {path}. Checked ZIP entries ending with {suffix}")
                   print(f"Verified all {len(expected)} adhan raw resources in {path}")
                   entries = sorted(archive.infolist(), key=lambda item: item.file_size, reverse=True)[:10]
                   for item in entries:
